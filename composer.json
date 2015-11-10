@@ -1,0 +1,23 @@
+{
+    "name": "root/code-inflector",
+    "authors": [
+        {
+            "name": "ClickLab",
+            "email": "dev@clicklab.com.br"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "doctrine/inflector": "1.1.0",
+        "symfony/finder": "2.7.6",
+        "symfony/yaml": "2.7.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
+    },
+    "autoload": {
+        "psr-0": {
+            "": "src"
+        }
+    }
+}
