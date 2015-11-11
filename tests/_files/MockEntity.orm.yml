@@ -1,0 +1,23 @@
+MockEntity:
+  repositoryClass: MockEntityRepository
+  fields:
+    test_field:
+      type: string
+      column: test_field
+
+  oneToMany:
+    one_to_many_entity:
+      inversedBy: inversed_field
+      mappedBy: mapped_field
+      orderBy: order_field
+      indexedBy: indexed_field
+
+  manyToOne:
+    many_to_one_entity:
+      inversedBy: inversed_one_field
+      mappedBy: mapped_one_field
+
+  manyToMany:
+    many_to_many_entity:
+      inversedBy: inversed_many_field
+      mappedBy: mapped_many_field

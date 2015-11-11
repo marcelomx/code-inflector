@@ -1,0 +1,8 @@
+<div>
+    <div>{{ object.attribute }}</div>
+    <div>{{ object.camel_attribute }}</div>
+    <div>{{ form_widget(form.form_field) }}</div>
+    <div>{{ form_error(form.form_field) }}</div>
+    <div>{{ object.other_attribute_with_filter | custom_filter | other_filter }}</div>
+    <div>{{ helper_function(second_helper_function(object.with_atttribute, {'helper_attr': helper_attr_value, 'other_attribute': object.helper_object_value})) }}</div>
+</div>

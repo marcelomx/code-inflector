@@ -1,35 +1,25 @@
 <?php
 
-class EntityInflector
+use Symfony\Component\Yaml\Yaml as YamlParser;
+
+class EntityInflector extends ClassInflector
 {
-    const MODE_CAMELIZE = 1;
-    const MODE_TABLEIZE = 2;
-
-    protected $backupExtension  = '.backup~';
-    protected $previewExtension = '.preview~';
-
     /** @var  YamlParser */
     protected $ymlParser;
     protected $entityFile;
     protected $entityMapping;
     protected $classMapping;
-    protected $className;
-    protected $classFile;
-    protected $classContent;
-    protected $classAttrs = array();
-    protected $modifyAttributes = array();
     protected $repositoryFile;
     protected $repositoryContent;
 
     /**
      * @param string $entityFile
-     * @param YamlParser $yamlParser
      */
-    public function __construct($entityFile, $yamlParser = null)
+    public function __construct($entityFile)
     {
-        $this->yamlParser = $yamlParser ?: new YamlParser();
         $this->entityFile = $entityFile;
-        $this->loadClass();
+
+        parent::__construct(null);
     }
 
     /**
@@ -42,21 +32,7 @@ class EntityInflector
         $this->className = $keys[0];
         $this->classMapping = $this->entityMapping[$this->className];
 
-        if (!class_exists($this->className)) {
-            throw new \RuntimeException(
-                sprintf('Entity class %s not exists', $this->className)
-            );
-        }
-        $refClass = new \ReflectionClass($this->className);
-        $this->classFile = $refClass->getFileName();
-
-        if (file_exists($this->classFile)) {
-            $this->classContent = file_get_contents($this->classFile);
-        }
-
-        // reset values
-        $this->classAttrs = static::parseClassAttrs($refClass);
-        $this->modifyAttributes = array();
+        parent::loadClass();
 
         // parse repository content
         if (isset($this->classMapping['repositoryClass'])) {
@@ -69,69 +45,29 @@ class EntityInflector
     }
 
     /**
-     * @param \ReflectionClass|string $refClass
-     * @return array
-     */
-    public static function parseClassAttrs($refClass)
-    {
-        if (!$refClass instanceof \ReflectionClass) {
-            $refClass = new \ReflectionClass($refClass);
-        }
-        $classAttrs = array();
-
-        foreach ($refClass->getProperties() as $property) {
-            $classAttrs[] = $property->getName();
-        }
-        $content = file_get_contents($refClass->getFileName());
-        preg_match_all("/\\\$this->([\w]+)([^\w\(])/", $content, $matches, PREG_SET_ORDER);
-
-        if ($matches) {
-            foreach ($matches as $match) {
-                $classAttrs[] = $match[1];
-            }
-        }
-
-        return array_unique($classAttrs);
-    }
-
-    /**
+     * @param array $modifyAttrs
      * @param int $mode
+     * @return mixed
      */
-    public function inflect($mode = self::MODE_CAMELIZE)
+    public function inflect($modifyAttrs = array(), $mode = self::MODE_CAMELIZE)
     {
-        // Inflect fields
-        if (isset($this->classMapping['fields'])) {
-            foreach (array_keys($this->classMapping['fields']) as $field) {
-                $this->inflectField($field, $mode);
+        if (!$modifyAttrs) {
+            // Inflect fields
+            if (isset($this->classMapping['fields'])) {
+                foreach (array_keys($this->classMapping['fields']) as $field) {
+                    $this->inflectField($field, $mode);
+                }
+            }
+
+            // Inflect relationships
+            foreach (array('oneToOne', 'oneToMany', 'manyToMany', 'manyToOne') as $relationType) {
+                if (isset($this->classMapping[$relationType])) {
+                    $this->inflectRelation($relationType, $mode);
+                }
             }
         }
 
-        // Inflect relationships
-        foreach (array('oneToOne', 'oneToMany', 'manyToMany', 'manyToOne') as $relationType) {
-            if (isset($this->classMapping[$relationType])) {
-                $this->inflectRelation($relationType, $mode);
-            }
-        }
-
-        // Inflect native attributes
-        foreach ($this->classAttrs as $attr) {
-            $newAttr = $this->inflectString($attr, $mode);
-            if ($newAttr != $attr) $this->modifyAttributes[$attr] = $newAttr;
-        }
-
-        // Parse modified attributes and change class
-        if ($this->modifyAttributes) {
-            foreach ($this->modifyAttributes as $attr => $newAttr) {
-                $this->classContent = preg_replace("/var (.*) \\$$attr([^\w])/", "var \\1 \\$$newAttr\\2", $this->classContent);
-                $this->classContent = preg_replace("/(private|protected) \\$$attr([^\w])/", "\\1 \\$$newAttr\\2", $this->classContent);
-                $this->classContent = preg_replace("/(Set|Get|Add|Remove) $attr([^\w])/", "\\1 $newAttr\\2", $this->classContent);
-                $this->classContent = preg_replace("/\\\$this->$attr([^\w])/", "\\\$this->$newAttr$1", $this->classContent);
-                // Replace references in repository
-                //$this->repositoryContent = preg_replace("/$attr/", "$newAttr", $this->repositoryContent);
-            }
-        }
-
-        return $this->classMapping;
+        return parent::inflect($modifyAttrs, $mode);
     }
 
     /**
@@ -226,7 +162,7 @@ class EntityInflector
                 $relationName = $newName;
             }
 
-            foreach (array('mappedBy', 'inversedBy') as $mappedAttribute) {
+            foreach (array('mappedBy', 'inversedBy', 'indexedBy', 'orderBy') as $mappedAttribute) {
                 if (isset($config[$mappedAttribute])) {
                     $config[$mappedAttribute] = $this->inflectString($config[$mappedAttribute], $mode);
                 }
@@ -235,27 +171,6 @@ class EntityInflector
         }
 
         $this->classMapping[$relationType] = $relationMapping;
-    }
-
-    /**
-     * @param $string
-     * @param int $mode
-     * @return string
-     */
-    protected function inflectString($string, $mode = self::MODE_CAMELIZE)
-    {
-        if (self::MODE_CAMELIZE == $mode) $string = Inflector::camelize($string);
-        if (self::MODE_TABLEIZE == $mode) $string =  Inflector::tableize($string);
-
-        return $string;
-    }
-
-    /**
-     * @return YamlParser
-     */
-    public function getYmlParser()
-    {
-        return $this->ymlParser;
     }
 
     /**
@@ -281,46 +196,6 @@ class EntityInflector
     public function getClassMapping()
     {
         return $this->classMapping;
-    }
-
-    /**
-     * @return string
-     */
-    public function getClassName()
-    {
-        return $this->className;
-    }
-
-    /**
-     * @return array
-     */
-    public function getClassAttrs()
-    {
-        return $this->classAttrs;
-    }
-
-    /**
-     * @return array
-     */
-    public function getModifyAttributes()
-    {
-        return $this->modifyAttributes;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getClassFile()
-    {
-        return $this->classFile;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getClassContent()
-    {
-        return $this->classContent;
     }
 
     /**
