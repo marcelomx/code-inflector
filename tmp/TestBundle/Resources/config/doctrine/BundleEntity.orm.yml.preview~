@@ -1,0 +1,22 @@
+TestBundle\Entity\BundleEntity:
+    fields:
+        testField:
+            type: string
+            column: test_field
+        testField2:
+            type: string
+            column: test_field2
+    oneToMany:
+        oneToFoos:
+            inversedBy: test
+            mappedBy: oneToFoos
+            orderBy: customField
+            indexedBy: indexedField
+    manyToOne:
+        manyToBar:
+            inversedBy: tests
+            mappedBy: manyToBar
+    manyToMany:
+        manyToManyBaz:
+            inversedBy: inversedManyFields
+            mappedBy: manyToManyBaz

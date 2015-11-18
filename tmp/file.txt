@@ -1,0 +1,38 @@
+--
+
+Example text:
+
+A PHP $dashed_variable and and a "table-string" example for and InflectorClass work!
+
+Inflection modes:
+
+1. Camelize:
+
+* $dashed_variable -> $dashedVariable
+* table-string -> tableString
+* InflectorClass -> inflectorClass
+
+2. Tableize
+
+* $dashed_variable -> $dashed-variable
+* table-string -> table-string
+* InflectorClass -> inflector-class
+
+* Classify
+
+* $dashed_variable -> $DashedVariable
+* table-string -> TableString
+* InflectorClass -> InflectorClass
+
+Now, trying execut the inflector command:
+
+bin/inflector inflect:file file.txt --var=foo --var=bar --mode[1-3] --save[0-4]
+
+Good luck!
+
+---
+
+
+
+
+

@@ -1,24 +1,24 @@
 <?php
 
+namespace ClickLab\Inflector;
+
 /**
  * @author Marcelo Rodrigues <marcelo.mx@gmail.com>
  * @api
  */ 
-class ClassInflector extends BaseInflector
+class ClassInflector extends FileInflector
 {
     protected $className;
     protected $classFile;
     protected $classContent;
-    protected $classAttrs = array();
-    protected $modifyAttributes = array();
+    protected $classProperties = array();
+    protected $modifiedProperties = array();
 
     /**
      * @param null $className
      */
     public function __construct($className)
     {
-        parent::__construct();
-
         $this->className = $className;
         $this->loadClass();
     }
@@ -30,19 +30,18 @@ class ClassInflector extends BaseInflector
     {
         if (!class_exists($this->className)) {
             throw new \RuntimeException(
-                sprintf('Entity class %s not exists', $this->className)
+                sprintf('Class %s not exists', $this->className)
             );
         }
         $refClass = new \ReflectionClass($this->className);
-        $this->classFile = $refClass->getFileName();
+        $this->file = $this->classFile = $refClass->getFileName();
 
-        if (file_exists($this->classFile)) {
-            $this->classContent = file_get_contents($this->classFile);
-        }
+        parent::loadContent();
+        $this->classContent = &$this->content;
 
         // reset values
-        $this->classAttrs = static::parseClassAttrs($refClass);
-        $this->modifyAttributes = array();
+        $this->classProperties = static::parseClassAttrs($refClass);
+        $this->modifiedProperties = array();
     }
 
     /**
@@ -59,7 +58,7 @@ class ClassInflector extends BaseInflector
         foreach ($refClass->getProperties() as $property) {
             $classAttrs[] = $property->getName();
         }
-        $content = file_get_contents($refClass->getFileName());
+        $content = static::loadFile($refClass->getFileName());
         preg_match_all("/\\\$this->([\w]+)([^\w\(])/", $content, $matches, PREG_SET_ORDER);
 
         if ($matches) {
@@ -72,24 +71,17 @@ class ClassInflector extends BaseInflector
     }
 
     /**
-     * @param array $modifyAttrs
+     * @param array $inflectedProperties
      * @param int $mode
      * @return mixed
      */
-    public function inflect($modifyAttrs = array(), $mode = self::MODE_CAMELIZE)
+    public function inflect($inflectedProperties = array(), $mode = self::MODE_CAMELIZE)
     {
-        if (!$modifyAttrs) {
-            // Inflect native attributes
-            foreach ($this->classAttrs as $attr) {
-                $newAttr = static::inflectString($attr, $mode);
-                if ($newAttr != $attr) $this->modifyAttributes[$attr] = $newAttr;
-            }
-            $modifyAttrs = $this->modifyAttributes;
-        }
+        $modifiedProperties = $inflectedProperties ?: ($this->modifiedProperties = $this->getInflectedProperties($mode));
 
         // Parse modified attributes and change class
-        if ($modifyAttrs) {
-            foreach ($modifyAttrs as $attr => $newAttr) {
+        if ($modifiedProperties) {
+            foreach ($modifiedProperties as $attr => $newAttr) {
                 $this->classContent = preg_replace("/var (.*) \\$$attr([^\w])/", "var \\1 \\$$newAttr\\2", $this->classContent);
                 $this->classContent = preg_replace("/(private|protected) \\$$attr([^\w])/", "\\1 \\$$newAttr\\2", $this->classContent);
                 $this->classContent = preg_replace("/(Set|Get|Add|Remove) $attr([^\w])/", "\\1 $newAttr\\2", $this->classContent);
@@ -98,6 +90,23 @@ class ClassInflector extends BaseInflector
         }
 
         return $this->classContent;
+    }
+
+    /**
+     * @param int $mode
+     * @return array
+     */
+    public function getInflectedProperties($mode = self::MODE_CAMELIZE)
+    {
+        $inflectedProperties = array();
+
+        // Inflect native attributes
+        foreach ($this->classProperties as $prop) {
+            $newProp = static::inflectString($prop, $mode);
+            if ($newProp != $prop) $inflectedProperties[$prop] = $newProp;
+        }
+
+        return $inflectedProperties;
     }
 
     /**
@@ -111,17 +120,17 @@ class ClassInflector extends BaseInflector
     /**
      * @return array
      */
-    public function getClassAttrs()
+    public function getClassProperties()
     {
-        return $this->classAttrs;
+        return $this->classProperties;
     }
 
     /**
      * @return array
      */
-    public function getModifyAttributes()
+    public function getModifiedProperties()
     {
-        return $this->modifyAttributes;
+        return $this->modifiedProperties;
     }
 
     /**
@@ -138,5 +147,14 @@ class ClassInflector extends BaseInflector
     public function getClassContent()
     {
         return $this->classContent;
+    }
+
+    /**
+     * @return void
+     */
+    public function restore()
+    {
+        parent::restore(false);
+        $this->loadClass();
     }
 }

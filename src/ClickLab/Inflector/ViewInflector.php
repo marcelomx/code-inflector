@@ -1,17 +1,19 @@
 <?php
 
+namespace ClickLab\Inflector;
+
 /**
  * @author Marcelo Rodrigues <marcelo.mx@gmail.com>
  * @api
  */ 
-class ViewInflector extends BaseInflector
+class ViewInflector extends FileInflector
 {
     const REGEX_TEMPLATE_VARIABLES = "/\{\{([^\{\}]+)\}\}/";
     const REGEX_OBJECT_VARIABLE    = "/^([\w\_\.]+)/";
 
     protected $originalContent;
     protected $content;
-    protected $viewFile;
+    protected $file;
     protected $variables = array();
     protected $parseObjects = false;
 
@@ -19,11 +21,22 @@ class ViewInflector extends BaseInflector
      * @param string $content
      * @param null $viewFile
      */
-    public function __construct($content, $viewFile = null)
+    public function __construct($content = null, $viewFile = null)
     {
-        parent::__construct();
         $this->originalContent = $this->content = $content;
-        $this->viewFile = $viewFile;
+        $this->file = $viewFile;
+
+        $this->loadView();
+    }
+
+    /**
+     * @return string
+     */
+    public function loadView()
+    {
+        if (!$this->content && $this->file) {
+            parent::loadContent();
+        }
 
         $this->parseVariables();
     }
@@ -148,39 +161,40 @@ class ViewInflector extends BaseInflector
     }
 
     /**
-     * @return string
+     * @param int $mode
+     * @return array
      */
-    public function getInflectedVariables()
+    public function getInflectedVariables($mode = self::MODE_CAMELIZE)
     {
-        return static::inflectArray($this->getVariables());
+        $inflectedVariables = array();
+
+        foreach ($this->getVariables() as $var) {
+            $inflectedVar = static::inflectString($var, $mode);
+            if ($inflectedVar != $var) $inflectedVariables[$var] = $inflectedVar;
+        }
+
+        return $inflectedVariables;
     }
 
     /**
-     * @param array $inflectVariables
+     * @param array $variables
+     * @param int $mode
      * @return string
      */
-    public function inflect($inflectVariables = array())
+    public function inflect($variables = array(), $mode = self::MODE_CAMELIZE)
     {
-        $inflectVariables = $inflectVariables ?: $this->getVariables();
-        $this->content = static::inflectContent($this->originalContent, $inflectVariables);
+        $variables = $variables ?: $this->getVariables();
+        $this->content = static::inflectContent($this->originalContent, $variables);
 
         return $this->content;
     }
 
     /**
-     * @param bool $original
-     * @return string
+     * @return void
      */
-    public function getContent($original = false)
+    public function restore()
     {
-        return $original ? $this->originalContent : $this->content;
-    }
-
-    /**
-     * @return null
-     */
-    public function getViewFile()
-    {
-        return $this->viewFile;
+        parent::restore(false);
+        $this->loadView();
     }
 }

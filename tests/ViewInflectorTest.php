@@ -1,21 +1,30 @@
 <?php
 
+namespace ClickLab\Inflector;
+
 /**
  * @property string content
+ * @property string $viewFile
  * @author Marcelo Rodrigues <marcelo.mx@gmail.com>
  * @api
  */
-class ViewInflectorTest extends PHPUnit_Framework_TestCase 
+class ViewInflectorTest extends \PHPUnit_Framework_TestCase
 {
     public function setUp()
     {
-        $this->content = file_get_contents(__DIR__ . '/_files/mock.html.twig');
+        $this->viewFile = __DIR__ . '/_files/mock.html.twig';
+        $this->content = file_get_contents($this->viewFile);
     }
 
     public function testExtractObjAttrs()
     {
-        //$expectedAttrs = array('object.attribute', 'object.other_attr', 'object.attribute_finish');
-        ///$this->assertEquals($expectedAttrs, ViewInflector::extractViewObjAttrs($this->content));
+        $expectedVars = array(
+            'object.other_attribute_with_filter | custom_filter | other_filter', 'form_widget(form.form_field)',
+            'form_error(form.form_field)', 'object.camel_attribute', 'object.attribute'
+        );
+        $expectedObjs = array('object.other_attribute_with_filter', 'object.camel_attribute', 'object.attribute');
+        $this->assertEquals($expectedVars, ViewInflector::extractViewObjAttrs($this->content, false));
+        $this->assertEquals($expectedObjs, ViewInflector::extractViewObjAttrs($this->content, true));
     }
 
     public function testExtratVariables()
@@ -30,6 +39,13 @@ class ViewInflectorTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($expectedVars, ViewInflector::extractViewVariables($this->content, false));
         $this->assertEquals($expectedObjs, ViewInflector::extractViewVariables($this->content, true));
+    }
+
+    public function testLoadFile()
+    {
+        $viewInflector = new ViewInflector(null, $this->viewFile);
+        $this->assertEquals($this->content, $viewInflector->getContent());
+        $this->assertEquals($this->viewFile, $viewInflector->getFile());
     }
 
     public function testParseVariables()
@@ -73,5 +89,12 @@ class ViewInflectorTest extends PHPUnit_Framework_TestCase
         if (false !== ($key = array_search('custom_variable', $variables))) unset($variables[$key]);
         $viewInflector->inflect($variables);
         $this->assertEquals($expectedOutput, $viewInflector->getContent());
+    }
+
+    public function testRestore()
+    {
+        $viewInflector = new ViewInflector(null, $this->viewFile);
+        $viewInflector->inflect();
+        $viewInflector->restore();
     }
 }

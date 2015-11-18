@@ -1,7 +1,8 @@
 <?php
 
+namespace ClickLab\Inflector;
+
 use Doctrine\Common\Inflector\Inflector;
-use Symfony\Component\Yaml\Yaml as YamlParser;
 
 /**
  * @author Marcelo Rodrigues <marcelo.mx@gmail.com>
@@ -9,38 +10,19 @@ use Symfony\Component\Yaml\Yaml as YamlParser;
  */ 
 class BaseInflector 
 {
-    const MODE_CAMELIZE = 1;
-    const MODE_TABLEIZE = 2;
+    const MODE_CAMELIZE  = 1;
+    const MODE_TABLEIZE  = 2;
+    const MODE_CLASSIFY  = 3;
+    const MODE_DASHERIZE = 4;
 
+    /**
+     * @var array
+     */
     protected static $excludeVariables = array(
         'block', 'body', 'do', 'embed', 'expression', 'flush', 'for', 'forloop', 'if', 'elseif',
         'import', 'include', 'macro', 'print', 'sandbox', 'set', 'settemp', 'spaceless', 'text',
         'endif', 'endfor', 'endwhile', 'endblock', 'end', 'form', 'form_widget', 'form_error'
     );
-
-    protected $backupExtension  = '.backup~';
-    protected $previewExtension = '.preview~';
-
-    /**
-     * @var YamlParser
-     */
-    protected $yamlParser;
-
-    /**
-     * @param null $yamlParser
-     */
-    public function __construct($yamlParser = null)
-    {
-        return $this->yamlParser = $yamlParser ?: new YamlParser();
-    }
-
-    /**
-     * @return YamlParser
-     */
-    public function getYmlParser()
-    {
-        return $this->yamlParser;
-    }
 
     /**
      * @param array $variables
@@ -49,22 +31,21 @@ class BaseInflector
      */
     public static function filterVariables($variables = array(), $sort = true)
     {
-        $variables = array_filter(
-            array_unique($variables),
+        $variables = array_unique($variables);
+        $variables = array_filter($variables,
             function($variable) {
                 return static::filterVariable($variable) ?: false;
             });
 
-        if (!$sort) return $variables;
+        if ($sort) {
+            usort($variables,
+                function($a, $b) {
+                    $sa = strlen($a); $sb = strlen($b);
+                    return $sa == $sb ? 0 : ($sa < $sb ? 1 : -1);
+                });
+        }
 
-        usort(
-            $variables,
-            function($a, $b) {
-                $sa = strlen($a); $sb = strlen($b);
-                return $sa == $sb ? 0 : ($sa < $sb ? 1 : -1);
-            });
-
-        return $variables;
+        return array_values($variables);
     }
 
     /**
@@ -88,6 +69,7 @@ class BaseInflector
         {
             if (self::MODE_CAMELIZE == $mode) $string = Inflector::camelize($string);
             if (self::MODE_TABLEIZE == $mode) $string = Inflector::tableize($string);
+            if (self::MODE_CLASSIFY == $mode) $string = Inflector::classify($string);
 
             return $string;
         }, $tokens);

@@ -5,6 +5,10 @@ MockEntity:
       type: string
       column: test_field
 
+    testField2:
+      type: string
+      column: test_field2
+
   oneToMany:
     oneToManyEntity:
       inversedBy: inversedField
