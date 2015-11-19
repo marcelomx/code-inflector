@@ -11,13 +11,13 @@ class Bar
     /**
      * @var TestBundle\Entity\BundleEntity
      */
-    protected $bundle_entity;
+    protected $bundleEntity;
 
     /**
      * @return TestBundle\Entity\BundleEntity
      */
     public function getBundleEntity()
     {
-        return $this->bundle_entity;
+        return $this->bundleEntity;
     }
 }

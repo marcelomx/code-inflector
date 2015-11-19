@@ -10,23 +10,23 @@ class BundleEntity
 {
     protected $name;
     protected $id;
-    protected $test_field;
-    protected $test_field2;
+    protected $testField;
+    protected $testField2;
     protected $one_to_bar;
     protected $many_to_foo;
-    protected $many_to_many_baz;
-    protected $not_mapped_property;
+    protected $manyToManyBaz;
+    protected $notMappedProperty;
 
     /**
      * @return mixed
      */
     public function getNotMappedProperty()
     {
-        return $this->not_mapped_property;
+        return $this->notMappedProperty;
     }
 
     public function getNoExistentInvalidProperty()
     {
-        return $this->not_mapped_and_inexistent_property;
+        return $this->notMappedAndInexistentProperty;
     }
 }

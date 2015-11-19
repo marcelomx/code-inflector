@@ -44,6 +44,8 @@ class BundleCommand extends FileCommand
         $excludedFiles = [];
         $inflectedVariables = array();
         $showPreview = $input->getOption('preview');
+        $lineSeparator = str_repeat('-', 96);
+        $fileSeparator = '';
 
         // Providing bundle paths!
         $suggestedMappingPath = $bundlePath . '/Resources/config/doctrine';
@@ -57,29 +59,30 @@ class BundleCommand extends FileCommand
 
         if ($mappingPath && file_exists($mappingPath)) {
             // Inflect entities
-            $output->writeln('--------------------------------------');
-            $output->writeln('<comment>Inflecting ENTITIES</comment>');
-            $output->writeln('--------------------------------------');
+            $output->writeln(PHP_EOL . $lineSeparator);
+            $output->writeln('<comment>Inflecting ENTITIES</comment>' . PHP_EOL);
 
             $finder = new Finder();
             foreach ($finder->files()->name('/\.yml$/')->in($mappingPath) as $file) {
-
+                $output->write($fileSeparator);
                 $entityInflector = new EntityInflector((string) $file);
                 $inflectedVariables = array_merge($inflectedVariables, $this->doInflect($input, $output, $entityInflector, $showPreview));
                 $excludedFiles[] = (string) $file;
                 $excludedFiles[] = $entityInflector->getClassInflector()->getFile();
+                $fileSeparator = '--' . PHP_EOL;
             }
+            $fileSeparator = '';
         }
 
         // Inflect all classes
-        $output->writeln('--------------------------------------');
-        $output->writeln('<comment>Inflecting CLASSES</comment>');
-        $output->writeln('--------------------------------------');
+        $output->writeln(PHP_EOL . $lineSeparator);
+        $output->writeln('<comment>Inflecting CLASSES</comment>' . PHP_EOL);
 
         $finder = new Finder();
         foreach ($finder->files()->in($bundlePath)->name('/\.php$/') as $file) {
             $classFile = (string) $file;
             if (in_array($classFile, $excludedFiles)) continue;
+            $output->write($fileSeparator);
 
             $className = str_replace($bundlePath, '', $classFile);
             $className = $this->normalizeClassName($className, $bundleNamespace);
@@ -87,20 +90,23 @@ class BundleCommand extends FileCommand
             if (class_exists($className)) {
                 $classInflector = new ClassInflector($className);
                 $inflectedVariables = array_merge($inflectedVariables, $this->doInflect($input, $output, $classInflector, $showPreview));
+                $fileSeparator = '--' . PHP_EOL;
             }
         }
+        $fileSeparator = '';
 
         // Inflect all views
         if ($viewsPath && file_exists($viewsPath)) {
-            $output->writeln('--------------------------------------');
-            $output->writeln('<comment>Inflecting VIEWS</comment>');
-            $output->writeln('--------------------------------------');
+            $output->writeln(PHP_EOL . $lineSeparator);
+            $output->writeln('<comment>Inflecting VIEWS</comment>' . PHP_EOL);
 
             $finder = new Finder();
             foreach ($finder->files()->in($viewsPath)->name('/\.twig$/') as $file) {
+                $output->write($fileSeparator);
                 $twigFile = (string) $file;
                 $viewInflector = new ViewInflector(null, $twigFile);
                 $this->doInflect($input, $output, $viewInflector, $showPreview);
+                $fileSeparator = '--' . PHP_EOL;
             }
         }
     }

@@ -8,6 +8,7 @@ use ClickLab\Inflector\EntityInflector;
 use ClickLab\Inflector\FileInflector;
 use ClickLab\Inflector\ViewInflector;
 use \Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -71,8 +72,7 @@ class FileCommand extends Command
     protected function doInflect(InputInterface $input, OutputInterface $output, FileInflector $inflector, $showPreview = true)
     {
         $mode = $input->getOption('mode');
-        $output->writeln('---');
-        $output->writeln(sprintf('<info>Inflecting: </info> <comment>%s</comment>', $inflector->getFile()));
+        $output->writeln(sprintf('<comment>File:</comment> %s', $inflector->getFile()));
         $this->restoreInflector($inflector, $input, $output);
         $confirmedInflectedVars = array();
 
@@ -114,12 +114,15 @@ class FileCommand extends Command
         }
 
         if ($confirmedInflectedVars) {
+            foreach ($confirmedInflectedVars as $var => $changedVar) {
+                $output->writeln(sprintf('<info>Renamed</info> %s to <comment>%s</comment>', $var, $changedVar));
+            }
             if ($showPreview) {
                 $this->showInflection($inflector, $output);
             }
             $this->saveInflector($inflector, $input, $output);
         } else {
-            $output->writeln('<command>Nothing to change...</command>');
+            $output->writeln('<info>Nothing to change...</info>');
         }
 
         return $confirmedInflectedVars;
@@ -131,9 +134,9 @@ class FileCommand extends Command
      */
     protected function showInflection(FileInflector $inflector, OutputInterface $output)
     {
-        $output->writeln('<info>File: </info>' . $inflector->getFile());
-        $output->writeln('<info>Preview inflected content: </info>');
+        $output->writeln('<info>Preview:</info>');
         $output->writeln($inflector->getContent(), OutputInterface::OUTPUT_RAW);
+
     }
 
     /**
@@ -233,8 +236,6 @@ class FileCommand extends Command
             if (!$confirm) {
                 $question = new ConfirmationQuestion(sprintf('<info>Inflect property/variable:</info> %s <comment>[yes]</comment>? ', $prop), true);
                 $helper->ask($input, $output, $question);
-            } else {
-                $output->writeln(sprintf('<info>Inflected property/variable:</info> %s --> <comment>%s</comment>', $prop, $inflectedProp));
             }
             if ($confirm) {
                 $confirmedVariables[$prop] = $inflectedProp;

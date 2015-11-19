@@ -1,25 +1,22 @@
 TestBundle\Entity\BundleEntity:
-  fields:
-    test_field:
-      type: string
-      column: test_field
-
-    test_field2:
-      type: string
-
-  oneToMany:
-    one_to_foos:
-      inversedBy: test
-      mappedBy: one_to_foos
-      orderBy: custom_field
-      indexedBy: indexed_field
-
-  manyToOne:
-    many_to_bar:
-      inversedBy: tests
-      mappedBy: many_to_bar
-
-  manyToMany:
-    many_to_many_baz:
-      inversedBy: inversed_many_fields
-      mappedBy: many_to_many_baz
+    fields:
+        testField:
+            type: string
+            column: test_field
+        testField2:
+            type: string
+            column: test_field2
+    oneToMany:
+        oneToFoos:
+            inversedBy: test
+            mappedBy: oneToFoos
+            orderBy: customField
+            indexedBy: indexedField
+    manyToOne:
+        manyToBar:
+            inversedBy: tests
+            mappedBy: manyToBar
+    manyToMany:
+        manyToManyBaz:
+            inversedBy: inversedManyFields
+            mappedBy: manyToManyBaz
