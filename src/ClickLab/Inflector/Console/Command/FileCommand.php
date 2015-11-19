@@ -118,6 +118,8 @@ class FileCommand extends Command
                 $this->showInflection($inflector, $output);
             }
             $this->saveInflector($inflector, $input, $output);
+        } else {
+            $output->writeln('<command>Nothing to change...</command>');
         }
 
         return $confirmedInflectedVars;
