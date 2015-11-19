@@ -7,6 +7,7 @@
  use ClickLab\Inflector\ViewInflector;
  use Symfony\Component\Console\Input\InputArgument;
  use Symfony\Component\Console\Input\InputInterface;
+ use Symfony\Component\Console\Input\InputOption;
  use Symfony\Component\Console\Output\OutputInterface;
  use Symfony\Component\Console\Question\Question;
  use Symfony\Component\Finder\Finder;
@@ -25,6 +26,7 @@ class BundleCommand extends FileCommand
         $this
             ->setName('inflect:bundle')
             ->addArgument('path', InputArgument::REQUIRED, 'The bundle source path')
+            ->addOption('namespace', InputOption::VALUE_OPTIONAL, 'The bundle namespace')
         ;
 
         $this->configureModes();
@@ -37,7 +39,8 @@ class BundleCommand extends FileCommand
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $bundlePath = realpath($input->getArgument('path'));
-        $bundleNamespace = basename($bundlePath);
+        $bundleNamespace = $input->getOption('namespace');
+        $bundleNamespace = $bundleNamespace ?: basename($bundlePath);
         $excludedFiles = [];
         $inflectedVariables = array();
         $showPreview = $input->getOption('preview');
