@@ -113,11 +113,10 @@ class FileCommand extends Command
             }
         }
 
-        if ($showPreview) {
-            $this->showInflection($inflector, $output);
-        }
-
         if ($confirmedInflectedVars) {
+            if ($showPreview) {
+                $this->showInflection($inflector, $output);
+            }
             $this->saveInflector($inflector, $input, $output);
         }
 

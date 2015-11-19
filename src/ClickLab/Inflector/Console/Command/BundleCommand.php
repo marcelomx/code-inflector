@@ -99,7 +99,6 @@ class BundleCommand extends FileCommand
             $finder = new Finder();
             foreach ($finder->files()->in($viewsPath)->name('/\.twig$/') as $file) {
                 $twigFile = (string) $file;
-                echo $twigFile . PHP_EOL;
                 $viewInflector = new ViewInflector(null, $twigFile);
                 $this->doInflect($input, $output, $viewInflector, $showPreview);
             }
