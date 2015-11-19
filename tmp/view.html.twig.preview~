@@ -1,9 +1,0 @@
-{% block body %}
-    {{ object.variable }}
-    {{ object.propertyObject.fooMethod }}
-    {{ object.propertyObject.barMethod }}
-
-    {% if object.custom_method() %}
-        {{ object.customPropertyWithNoArguments }}
-    {% endif %}
-{% endblock %}
