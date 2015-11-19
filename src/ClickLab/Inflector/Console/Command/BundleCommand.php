@@ -26,7 +26,7 @@ class BundleCommand extends FileCommand
         $this
             ->setName('inflect:bundle')
             ->addArgument('path', InputArgument::REQUIRED, 'The bundle source path')
-            ->addOption('namespace', InputOption::VALUE_OPTIONAL, 'The bundle namespace')
+            ->addOption('namespace', null, InputOption::VALUE_OPTIONAL, 'The bundle namespace')
         ;
 
         $this->configureModes();
