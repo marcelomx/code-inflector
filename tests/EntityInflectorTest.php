@@ -6,6 +6,7 @@ require_once __DIR__ . '/_files/MockEntity.php';
 require_once __DIR__ . '/_files/MockEntityRepository.php';
 
 use Mockery as m;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * @property string entityFile
@@ -13,7 +14,7 @@ use Mockery as m;
  * @property string outputEntity
  * @property array outputYaml
  * @property array inputYaml
- * @property m\MockInterface yamlParser
+ * @property m\MockInterface|Yaml yamlParser
  * @property array entityFields
  * @property string tmpFile
  * @author Marcelo Rodrigues <marcelo.mx@gmail.com>
@@ -26,7 +27,7 @@ class EntityInflectorTest extends \PHPUnit_Framework_TestCase
         $this->entityFile = __DIR__ . '/_files/MockEntity.orm.yml';
         $this->inflector = new EntityInflector($this->entityFile);
 
-        $this->yamlParser = m::mock('Symfony\Component\Yaml\Yaml');
+        $this->yamlParser = m::mock(Yaml::class);
         $this->inputYaml = include(__DIR__ . '/_files/MockEntity.orm.php');
         $this->outputYaml = include(__DIR__ . '/_output/MockEntity.orm.php');
         $this->outputEntity = file_get_contents(__DIR__ . '/_output/MockEntity.php');
@@ -53,8 +54,8 @@ class EntityInflectorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($this->inputYaml, $this->inflector->getOriginalMapping());
         $this->assertEquals('MockEntity', $this->inflector->getEntityClass());
         $this->assertEquals('MockEntityRepository', $this->inflector->getRepositoryClass());
-        $this->assertInstanceOf('ClickLab\Inflector\ClassInflector', $this->inflector->getClassInflector());
-        $this->assertInstanceOf('ClickLab\Inflector\ClassInflector', $this->inflector->getRepositoryInflector());
+        $this->assertInstanceOf(ClassInflector::class, $this->inflector->getClassInflector());
+        $this->assertInstanceOf(ClassInflector::class, $this->inflector->getRepositoryInflector());
     }
 
     public function testInflectField()
@@ -103,10 +104,10 @@ class EntityInflectorTest extends \PHPUnit_Framework_TestCase
 
     public function testGetInflectedFields()
     {
-        $inflectedProperties = $this->inflector->getClassInflector()->getInflectedProperties();
+        $inflectedProperties = $this->inflector->getClassInflector()->parseInflectedProperties();
         $modifiedFields = $this->getModifiedFields();
         $expectedFields = array_merge($modifiedFields, $inflectedProperties);
-        $inflectedFields = $this->inflector->getInflectedFields();
+        $inflectedFields = $this->inflector->parseInflectedFields();
         $this->assertInternalType('array', $inflectedFields);
         $this->assertEquals($expectedFields, $inflectedFields);
     }

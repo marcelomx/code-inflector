@@ -76,7 +76,7 @@ class FileCommand extends Command
         $confirmedInflectedVars = array();
 
         if ($inflector instanceof EntityInflector) {
-            $inflectedProperties = $inflector->getInflectedFields($mode);
+            $inflectedProperties = $inflector->parseInflectedFields($mode);
             $confirmedInflectedVars = $this->confirmInflectedVariables($inflectedProperties, $input, $output);
 
             if ($confirmedInflectedVars) {
@@ -91,7 +91,7 @@ class FileCommand extends Command
         }
         else if ($inflector instanceof ClassInflector) {
             $this->restoreInflector($inflector, $input, $output);
-            $inflectedProperties = $inflector->getInflectedProperties($mode);
+            $inflectedProperties = $inflector->parseInflectedProperties($mode);
             $confirmedInflectedVars = $this->confirmInflectedVariables($inflectedProperties, $input, $output);
 
             if ($confirmedInflectedVars) {

@@ -62,7 +62,8 @@ class ViewInflectorTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType('array', $variables);
         $this->assertGreaterThanOrEqual(1, count($variables));
         $inflectedVariables = $viewInflector->getInflectedVariables();
-        $this->assertEquals(ViewInflector::inflectArray($variables), $inflectedVariables);
+        $inflectedArray = ViewInflector::inflectArray($variables);
+        $this->assertArraySubset(array_values($inflectedVariables), $inflectedArray);
         $viewInflector->setParseVariableAsObjs(true);
         $this->assertNotEquals($variables, $viewInflector->getVariables());
     }

@@ -11,9 +11,9 @@ class MockEntityRepository
      */
     public function getAllWithFoo()
     {
-        $query = 'SELECT m.test_field, f.foo_name' .
+        $query = 'SELECT m.testField, f.fooName' .
                  'FROM MockEntity m ' .
-                 'INNER JOIN m.mock_foo f';
+                 'INNER JOIN m.mockFoo f';
 
         return $this->createQueryBuilder($query);
     }
@@ -23,10 +23,10 @@ class MockEntityRepository
      */
     public function getAllWithBars()
     {
-        $query = 'SELECT m.test_field, b.test_field2, p.test_field3' .
+        $query = 'SELECT m.testField, b.testField2, p.testField3' .
                  'FROM MockEntity m ' .
-                 'INNER JOIN m.mock_bars b ' .
-                 'INNER JOIN b.mock_parent p';
+                 'INNER JOIN m.mockBars b ' .
+                 'INNER JOIN b.mockParent p';
 
         return $this->createQueryBuilder($query);
     }
@@ -36,9 +36,9 @@ class MockEntityRepository
      */
     public function getAllWithMockers()
     {
-        $query = 'SELECT m.test_field, g.group_name' .
+        $query = 'SELECT m.testField, g.groupName' .
                  'FROM MockEntity m ' .
-                 'INNER JOIN m.mock_mockers g';
+                 'INNER JOIN m.mockMockers g';
 
         return $this->createQueryBuilder($query);
     }

@@ -12,7 +12,7 @@ class ClassInflector extends FileInflector
     protected $classFile;
     protected $classContent;
     protected $classProperties = array();
-    protected $modifiedProperties = array();
+    protected $inflectedProperties = array();
 
     /**
      * @param null $className
@@ -40,34 +40,34 @@ class ClassInflector extends FileInflector
         $this->classContent = &$this->content;
 
         // reset values
-        $this->classProperties = static::parseClassAttrs($refClass);
-        $this->modifiedProperties = array();
+        $this->classProperties     = static::parseClassProperties($refClass);
+        $this->inflectedProperties = array();
     }
 
     /**
      * @param \ReflectionClass|string $refClass
      * @return array
      */
-    public static function parseClassAttrs($refClass)
+    public static function parseClassProperties($refClass)
     {
-        if (!$refClass instanceof \ReflectionClass) {
-            $refClass = new \ReflectionClass($refClass);
-        }
-        $classAttrs = array();
+        $refClass = !$refClass instanceof \ReflectionClass ? new \ReflectionClass($refClass) : $refClass;
+        $properties = array();
 
         foreach ($refClass->getProperties() as $property) {
-            $classAttrs[] = $property->getName();
+            $properties[] = $property->getName();
         }
+
+        // Parse usage used not existent properties
         $content = static::loadFile($refClass->getFileName());
         preg_match_all("/\\\$this->([\w]+)([^\w\(])/", $content, $matches, PREG_SET_ORDER);
 
         if ($matches) {
             foreach ($matches as $match) {
-                $classAttrs[] = $match[1];
+                $properties[] = $match[1];
             }
         }
 
-        return array_unique($classAttrs);
+        return array_unique($properties);
     }
 
     /**
@@ -77,14 +77,18 @@ class ClassInflector extends FileInflector
      */
     public function inflect($inflectedProperties = array(), $mode = self::MODE_CAMELIZE)
     {
-        $modifiedProperties = $inflectedProperties ?: ($this->modifiedProperties = $this->getInflectedProperties($mode));
+        $inflectedProperties = $inflectedProperties ?: ($this->inflectedProperties = $this->parseInflectedProperties($mode));
 
         // Parse modified attributes and change class
-        if ($modifiedProperties) {
-            foreach ($modifiedProperties as $attr => $newAttr) {
+        if ($inflectedProperties) {
+            foreach ($inflectedProperties as $attr => $newAttr) {
+                // attribute doc comment
                 $this->classContent = preg_replace("/var (.*) \\$$attr([^\w])/", "var \\1 \\$$newAttr\\2", $this->classContent);
-                $this->classContent = preg_replace("/(private|protected) \\$$attr([^\w])/", "\\1 \\$$newAttr\\2", $this->classContent);
+                // attribute declaration
+                $this->classContent = preg_replace("/(public|private|protected) \\$$attr([^\w])/", "\\1 \\$$newAttr\\2", $this->classContent);
+                // getters/setters and collection methods
                 $this->classContent = preg_replace("/(Set|Get|Add|Remove) $attr([^\w])/", "\\1 $newAttr\\2", $this->classContent);
+                // internal scope usage.
                 $this->classContent = preg_replace("/\\\$this->$attr([^\w])/", "\\\$this->$newAttr$1", $this->classContent);
             }
         }
@@ -96,7 +100,7 @@ class ClassInflector extends FileInflector
      * @param int $mode
      * @return array
      */
-    public function getInflectedProperties($mode = self::MODE_CAMELIZE)
+    public function parseInflectedProperties($mode = self::MODE_CAMELIZE)
     {
         $inflectedProperties = array();
 
@@ -128,9 +132,9 @@ class ClassInflector extends FileInflector
     /**
      * @return array
      */
-    public function getModifiedProperties()
+    public function getInflectedProperties()
     {
-        return $this->modifiedProperties;
+        return $this->inflectedProperties;
     }
 
     /**

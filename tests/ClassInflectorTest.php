@@ -33,7 +33,7 @@ class ClassInflectorTest extends \PHPUnit_Framework_TestCase
 
     function testParseClassAttrs()
     {
-        $this->assertEquals($this->classAttrs, ClassInflector::parseClassAttrs('MockEntity'));
+        $this->assertEquals($this->classAttrs, ClassInflector::parseClassProperties('MockEntity'));
     }
 
     function testLoadClass()
@@ -42,7 +42,7 @@ class ClassInflectorTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($this->inflector->getClassContent(), $this->inputEntity);
         $this->assertEquals($this->inflector->getContent(), $this->inputEntity);
         $this->assertEquals($this->inflector->getClassFile(), __DIR__ . '/_files/MockEntity.php');
-        $this->assertEquals($this->inflector->getModifiedProperties(), array());
+        $this->assertEquals($this->inflector->getInflectedProperties(), array());
         $this->assertEquals($this->classAttrs, $this->inflector->getClassProperties());
     }
 
@@ -58,14 +58,14 @@ class ClassInflectorTest extends \PHPUnit_Framework_TestCase
         foreach ($this->classAttrs as $attr) {
             $expectedProperties[$attr] = ClassInflector::inflectString($attr);
         }
-        $inflectedProperties = $this->inflector->getInflectedProperties();
+        $inflectedProperties = $this->inflector->parseInflectedProperties();
         $this->assertInternalType('array', $inflectedProperties);
     }
 
     function testInflectContent()
     {
         $this->inflector->inflect();
-        $this->assertNotEquals($this->classAttrs, $this->inflector->getModifiedProperties());
+        $this->assertNotEquals($this->classAttrs, $this->inflector->getInflectedProperties());
         $this->assertEquals($this->outputEntity, $this->inflector->getClassContent());
         $this->assertEquals($this->outputEntity, $this->inflector->getContent());
     }

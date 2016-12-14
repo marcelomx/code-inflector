@@ -2,11 +2,11 @@
 
 namespace ClickLab\Inflector;
 
-use Symfony\Component\Yaml\Yaml as YamlParser;
+use Symfony\Component\Yaml\Yaml as YmlParser;
 
 class EntityInflector extends FileInflector
 {
-    /** @var  YamlParser */
+    /** @var  YmlParser */
     protected $ymlParser;
     protected $file;
     protected $originalMapping;
@@ -15,20 +15,19 @@ class EntityInflector extends FileInflector
     protected $classMapping;
     protected $repositoryClass;
     /** @var  ClassInflector */
-    protected $entityInflector;
+    protected $classInflector;
     /** @var  ClassInflector */
     protected $repositoryInflector;
     protected $changedFields = array();
 
     /**
      * @param string $mappingFile
-     * @param YamlParser $yamlParser
+     * @param YmlParser $ymlParser
      */
-    public function __construct($mappingFile, $yamlParser = null)
+    public function __construct($mappingFile, $ymlParser = null)
     {
-        $this->file = $mappingFile;
-        $this->yamlParser = $yamlParser ?: new YamlParser();
-
+        parent::__construct($mappingFile);
+        $this->ymlParser = $ymlParser;
         $this->loadEntity();
     }
 
@@ -37,12 +36,10 @@ class EntityInflector extends FileInflector
      */
     public function loadEntity()
     {
-        parent::loadContent();
-
         $this->originalMapping = $this->entityMapping = $this->parseMapping();
-        $this->entityClass = current(array_keys($this->entityMapping));
-        $this->classMapping = &$this->entityMapping[$this->entityClass];
-        $this->entityInflector = new ClassInflector($this->entityClass);
+        $this->entityClass     = current(array_keys($this->entityMapping));
+        $this->classMapping    = &$this->entityMapping[$this->entityClass];
+        $this->classInflector  = new ClassInflector($this->entityClass);
 
         if (isset($this->classMapping['repositoryClass'])) {
             $this->repositoryClass = $this->classMapping['repositoryClass'];
@@ -55,7 +52,12 @@ class EntityInflector extends FileInflector
      */
     public function parseMapping()
     {
-        return $this->yamlParser->parse($this->content);
+        if (!$this->ymlParser) {
+            $this->ymlParser = new YmlParser();
+        }
+
+        $this->originalMapping = $this->ymlParser->parse($this->content);
+        $this->entityMapping   = $this->originalMapping;
     }
 
     /**
@@ -65,10 +67,15 @@ class EntityInflector extends FileInflector
      */
     public function inflect($inflectedFields = array(), $mode = self::MODE_CAMELIZE)
     {
-        $inflectedFields = $inflectedFields ?: $this->getInflectedFields($mode);
-        $this->doInflectFields($mode, true, array_keys($inflectedFields));
-        $this->entityInflector->inflect($inflectedFields, $mode);
-        $this->content = $this->yamlParser->dump($this->entityMapping, 6, 4, false, true);
+        $inflectedFields = $inflectedFields ?: $this->parseInflectedFields($mode);
+        $this->inflectFields($mode, true, array_keys($inflectedFields));
+        $this->classInflector->inflect($inflectedFields, $mode);
+        $this->content = $this->ymlParser->dump($this->entityMapping, 6, 4, false, true);
+
+        // Inflect repository
+        if ($this->repositoryInflector) {
+            $this->repositoryInflector->inflect($inflectedFields, $mode);
+        }
 
         return $inflectedFields;
     }
@@ -77,10 +84,10 @@ class EntityInflector extends FileInflector
      * @param int $mode
      * @return array
      */
-    public function getInflectedFields($mode = self::MODE_CAMELIZE)
+    public function parseInflectedFields($mode = self::MODE_CAMELIZE)
     {
-        $inflectedFields = $this->doInflectFields($mode, false);
-        $inflectedFields = array_merge($inflectedFields, $this->entityInflector->getInflectedProperties($mode));
+        $inflectedFields = $this->inflectFields($mode, false);
+        $inflectedFields = array_merge($inflectedFields, $this->classInflector->parseInflectedProperties($mode));
 
         return $inflectedFields;
     }
@@ -91,7 +98,7 @@ class EntityInflector extends FileInflector
      * @param array $allowedChangeFields
      * @return array
      */
-    protected function doInflectFields($mode, $changeMapping = false, $allowedChangeFields = array())
+    protected function inflectFields($mode, $changeMapping = false, $allowedChangeFields = array())
     {
         $inflectedFields = array();
 
@@ -253,7 +260,7 @@ class EntityInflector extends FileInflector
      */
     public function getClassInflector()
     {
-        return $this->entityInflector;
+        return $this->classInflector;
     }
 
     /**
@@ -279,7 +286,7 @@ class EntityInflector extends FileInflector
     public function save($mode = self::SAVE_MODE_PREVIEW)
     {
         parent::save($mode);
-        $this->entityInflector->save($mode);
+        $this->classInflector->save($mode);
     }
 
     /**
@@ -287,7 +294,7 @@ class EntityInflector extends FileInflector
      */
     public function restore()
     {
-        $this->entityInflector->restore();
+        $this->classInflector->restore();
         parent::restore(false);
         $this->loadEntity();
     }

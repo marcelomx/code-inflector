@@ -1,4 +1,6 @@
 MockEntity:
+  type: entity
+  table: mock_entity
   repositoryClass: MockEntityRepository
   fields:
     test_field:
@@ -8,19 +10,51 @@ MockEntity:
     test_field2:
       type: string
 
+    test_field_3:
+      type: string
+
+  oneToOne:
+    mock_foo:
+      targetEntity: MockFooEntity
+      inversedBy: mock_owner
+      joinColumn:
+        name: mock_foo_id
+        referencedColumName: id
+
   oneToMany:
-    one_to_many_entity:
-      inversedBy: inversed_field
-      mappedBy: mapped_field
-      orderBy: order_field
-      indexedBy: indexed_field
+    mock_bars:
+      targetEntity: MockEntity
+      mappedBy: mock_parent
+      orderBy:
+        order_field: ASC
 
   manyToOne:
-    many_to_one_entity:
-      inversedBy: inversed_one_field
-      mappedBy: mapped_one_field
+    mock_parent:
+      targetEntity: MockEntity
+      inversedBy: mock_bars
+      joinColumn:
+        name: mock_parent_id
+        referencedColumName: id
 
   manyToMany:
-    many_to_many_entity:
-      inversedBy: inversed_many_field
-      mappedBy: mapped_many_field
+    mock_groups:
+      targetEntity: MockGroup
+      inversedBy: mockers
+      joinTable:
+        name: mock_groups
+        joinColumns:
+          mock_id:
+            referencedColumName: id
+        inversedJoinColumns:
+          mock_group_id:
+            referencedColumName: id
+
+  uniqueConstraints:
+    search_idx:
+      columns: [test_field, test_field2]
+
+  indexes:
+    test_field2_idx:
+      columns: test_field2
+    0:
+      columns: test_field
