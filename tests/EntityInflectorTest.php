@@ -1,6 +1,6 @@
 <?php
 
-namespace ClickLab\Inflector;
+namespace CodeInflector\Inflector;
 
 require_once __DIR__ . '/_files/MockEntity.php';
 require_once __DIR__ . '/_files/MockEntityRepository.php';

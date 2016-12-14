@@ -1,6 +1,6 @@
 <?php
 
-namespace ClickLab\Inflector;
+namespace CodeInflector\Inflector;
 
 use Symfony\Component\Yaml\Yaml as YmlParser;
 

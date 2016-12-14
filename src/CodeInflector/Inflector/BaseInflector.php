@@ -1,6 +1,6 @@
 <?php
 
-namespace ClickLab\Inflector;
+namespace CodeInflector\Inflector;
 
 use Doctrine\Common\Inflector\Inflector;
 

@@ -1,10 +1,10 @@
 <?php
 
- namespace ClickLab\Inflector\Console\Command;
+ namespace CodeInflector\Inflector\Console\Command;
 
- use ClickLab\Inflector\ClassInflector;
- use ClickLab\Inflector\EntityInflector;
- use ClickLab\Inflector\ViewInflector;
+ use CodeInflector\Inflector\ClassInflector;
+ use CodeInflector\Inflector\EntityInflector;
+ use CodeInflector\Inflector\ViewInflector;
  use Symfony\Component\Console\Input\InputArgument;
  use Symfony\Component\Console\Input\InputInterface;
  use Symfony\Component\Console\Input\InputOption;

@@ -1,12 +1,12 @@
 <?php
 
-namespace ClickLab\Inflector\Console\Command;
+namespace CodeInflector\Inflector\Console\Command;
 
-use ClickLab\Inflector\BaseInflector;
-use ClickLab\Inflector\ClassInflector;
-use ClickLab\Inflector\EntityInflector;
-use ClickLab\Inflector\FileInflector;
-use ClickLab\Inflector\ViewInflector;
+use CodeInflector\Inflector\BaseInflector;
+use CodeInflector\Inflector\ClassInflector;
+use CodeInflector\Inflector\EntityInflector;
+use CodeInflector\Inflector\FileInflector;
+use CodeInflector\Inflector\ViewInflector;
 use \Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

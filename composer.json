@@ -1,9 +1,9 @@
 {
-    "name": "root/code-inflector",
+    "name": "marcelomx/code-inflector",
     "authors": [
         {
-            "name": "ClickLab",
-            "email": "dev@clicklab.com.br"
+            "name": "Marcelo Rodrigues",
+            "email": "marcelo.mx@gmail.com"
         }
     ],
     "minimum-stability": "dev",

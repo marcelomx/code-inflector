@@ -1,6 +1,6 @@
 <?php
 
-namespace ClickLab\Inflector;
+namespace CodeInflector\Inflector;
 
 /**
  * @author Marcelo Rodrigues <marcelo.mx@gmail.com>

@@ -16,11 +16,11 @@ if (is_file($autoload = __DIR__ . '/../vendor/autoload.php')) {
 
 
 use Symfony\Component\Console\Application;
-use ClickLab\Inflector\Console\Command\ClassCommand;
-use ClickLab\Inflector\Console\Command\FileCommand;
-use ClickLab\Inflector\Console\Command\ViewCommand;
-use ClickLab\Inflector\Console\Command\EntityCommand;
-use ClickLab\Inflector\Console\Command\BundleCommand;
+use CodeInflector\Inflector\Console\Command\ClassCommand;
+use CodeInflector\Inflector\Console\Command\FileCommand;
+use CodeInflector\Inflector\Console\Command\ViewCommand;
+use CodeInflector\Inflector\Console\Command\EntityCommand;
+use CodeInflector\Inflector\Console\Command\BundleCommand;
 
 $application = new Application('Code Inflector', '0.1');
 $application->add(new FileCommand());
