@@ -2,19 +2,18 @@ pipeline {
   agent any
   stages {
     stage('Build') {
-      parallel {
-        stage('Build') {
-          steps {
-            sh 'echo "Hello world"'
-            sleep 1
-            echo 'Printed message'
-          }
+      agent {
+        docker {
+          image 'secom/composer'
+          args '--volume $WORKSPACE:/app '
         }
-        stage('Building Paralell') {
-          steps {
-            echo 'Step Paralell'
-          }
-        }
+
+      }
+      steps {
+        sh 'echo "Hello world"'
+        sleep 1
+        echo 'Printed message'
+        sh 'composer install'
       }
     }
     stage('Artifactory') {
